@@ -1,11 +1,21 @@
-from flask import Flask, request
+from flask import Flask, request, abort, render_template
+from flask_httpauth import HTTPBasicAuth
 from patent_client import Inpadoc
 from datetime import datetime
 from titlecase import titlecase
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
+
+USERNAME = 'patent'
+PASSWORD = 'bigMoneybig$how'
+
+@auth.verify_password
+def verify_password(username, password):
+    return username == USERNAME and password == PASSWORD
 
 @app.route("/")
+@auth.login_required
 def index():
     patNumber = request.args.get("patNumber", "")
     if patNumber:
@@ -13,15 +23,7 @@ def index():
     else:
         patentSelect = ""
         
-    return (
-        """<form action="" method="get">
-                <p><label for="number">Input individual numbers here:</label>
-                <input type="text" name="patNumber">
-                </p>
-                <p><input type="submit" value="Submit"></p>   
-            </form>""" 
-        + patentSelect
-    )
+    return render_template("index.html", patentSelect=patentSelect)
 
 def format_date(date):
     formatted_date = date.strftime('%B %d, %Y')
@@ -35,7 +37,7 @@ def get_patent_info(patNumber):
         abstract = pub.biblio.abstract
         formNum = "{:,}".format(int(patNumber))
         date = pub.biblio.publication_reference_docdb.date
-        image = pub.images.first_page.link
+        google = f"https://patents.google.com/patent/US{patNumber}"
         response = ""
 
         if formNum:
@@ -69,11 +71,9 @@ def get_patent_info(patNumber):
             response += f"<p>{abstract}</p>"
         else:
             response += "<p>Abstract: Not Found</p>"
-
-        if image:
-            response += "<h2>Image:</h2>"
-            response += f"<a href={image}>Link</a>"
-            # link not working getting 403'd due to link string not being authenticated
+            
+        response += f"<h2>Google Patents:</h2>"
+        response += f"<a href='{google}' target='blank'>Google Patents Link</a>"
 
         return response
     
@@ -81,4 +81,4 @@ def get_patent_info(patNumber):
         return str(e), ""
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5005, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

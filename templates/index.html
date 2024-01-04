@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PatentMaster</title>
+    <link rel="stylesheet" href="static/style.css" />
+  </head>
+
+  <body>
+    <form action="" method="get">
+      <p>
+        <label for="number">Input individual numbers here:</label>
+        <input type="text" name="patNumber" />
+      </p>
+      <p><input type="submit" value="Submit" /></p>
+    </form>
+
+    {{ patentSelect | safe}}
+  </body>
+</html>
